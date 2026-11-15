@@ -1,88 +1,115 @@
-# Palo Alto Networks — Dual ISP, ECMP, PBF & HA Lab
+# Palo Alto Networks | Dual-ISP Routing, ECMP, PBF & HA Design
 
-Hands-on Palo Alto Networks firewall lab documentation covering dual-ISP routing, NAT, Equal-Cost Multi-Path (ECMP), policy-based forwarding (PBF), path monitoring, and high-availability concepts.
+**Enterprise network-security lab · PAN-OS · EVE-NG · VMware Workstation**
+
+A hands-on firewall project exploring resilient internet connectivity, session-aware traffic steering, outbound NAT, static-route monitoring, and Palo Alto Networks high-availability architecture.
+
+> **Evidence boundary:** Dual-ISP, NAT, ECMP, route monitoring, and PBF are documented with configuration screenshots and selected connectivity checks. HA is discussed as a design/reference topic; measured HA failover is **not** claimed.
+
+## At a glance
+
+| Area | What was explored | Evidence |
+| --- | --- | --- |
+| Dual WAN | Two simulated upstream ISP connections and source NAT | Screenshots in `screenshots/` |
+| Static routing | Default routes with preferred metrics | Routing table examples |
+| ECMP | Equal-cost eligible paths and distribution algorithms | Configuration and ping/traffic-log examples |
+| Failover | Static-route path monitoring and backup path | Monitor configuration and CLI check |
+| PBF | Source-based egress selection for LAN/DMZ traffic | Policy examples and hit/traffic logs |
+| HA | Active/passive vs. active/active, HA1/HA2 and monitoring | Reference/design material only |
 
 ## Lab environment
 
-- Palo Alto Networks firewall (PAN-OS)
-- EVE-NG virtual network lab
-- VMware Workstation virtual networks to simulate separate ISP connections
-- LAN and DMZ test clients
+- **Firewall:** Palo Alto Networks PAN-OS (exact version not recorded)
+- **Emulation:** EVE-NG
+- **Virtual networking:** VMware Workstation; a VMware NAT network provides the second simulated ISP
+- **Test segments:** LAN and DMZ clients
+- **Routing:** Static default routes, ECMP, PBF and path monitoring
 
-> **Scope:** The dual-ISP, ECMP, static-route monitoring, and PBF sections include configuration and test screenshots. The later high-availability material includes configuration concepts and reference diagrams; it should not be interpreted as proof that every HA scenario was fully tested.
+### Logical topology
 
-## 1. Dual ISP connectivity and NAT
+```text
+ LAN clients ----+
+                 +---- Palo Alto firewall ---- ethernet1/1 ---- ISP 1 (simulated)
+ DMZ clients ----+             |
+                               +---- ethernet1/8 ---- ISP 2 (VMware NAT)
+```
 
-The lab uses separate VMware virtual networks as simulated upstream ISP connections. An additional EVE-NG cloud interface connects the firewall to the second simulated ISP.
+This is a **logical** diagram, not a verified physical cabling plan. See [topology notes](topology/README.md).
 
-- Configure the second WAN interface and IP addressing.
-- Assign a security zone appropriate to the design.
-- Configure source NAT for outbound traffic on each ISP.
-- Verify traffic using the firewall's session/traffic logs.
+## How traffic flows
 
-## 2. Static default routes and ECMP
+1. A LAN or DMZ client sends traffic to its gateway.
+2. The firewall evaluates applicable security and forwarding policies.
+3. PBF, when matched and applicable, can steer traffic to a specified egress/next hop; otherwise routing-table decisions apply. ECMP can distribute eligible sessions over equal-cost paths.
+4. Source NAT is applied as configured for the selected outbound path.
+5. The firewall forwards traffic and tracks the session; traffic logs and policy counters help verify behavior.
 
-Two default routes (`0.0.0.0/0`) point to separate ISP gateways.
+**Important:** ECMP distributes eligible sessions; it does not necessarily split each packet equally across ISPs. PBF is distinct from ECMP. Security-policy authorization is not the same as user authentication.
 
-- With different metrics, the lower-metric route is preferred.
-- With ECMP enabled and equal-cost eligible routes, the firewall can distribute sessions across both WAN paths.
-- The documentation compares IP Modulo, IP Hash, Balanced Round Robin, and Weighted Round Robin methods.
+## Implementation walkthrough
 
-**Verification:** The lab records successful client ping tests and firewall traffic logs while examining path selection.
+### 1 — Dual ISP and outbound NAT
+Configure two WAN-facing interfaces, assign the correct zones, and create source NAT rules for outbound traffic via each simulated ISP. Confirm sessions and translations in traffic logs.
 
-## 3. Primary/backup ISP failover
+### 2 — Static routes and ECMP
+Add `0.0.0.0/0` routes toward both upstream gateways. A lower route metric makes a path preferred; equal-cost eligible routes can participate in ECMP when enabled. The source material discusses IP Modulo, IP Hash, Balanced Round Robin and Weighted Round Robin.
 
-The lab demonstrates primary and secondary default routes with different metrics and route path monitoring.
-
-- Monitor reachability beyond the local firewall interface.
-- Withdraw an unusable primary route when its monitored destination becomes unreachable.
-- Use the secondary route while the primary path is unavailable.
-- Check routing and monitoring state with:
+### 3 — Primary/backup path monitoring
+Configure path monitoring to detect upstream reachability failure beyond the local interface, withdraw the affected static route when its monitor fails, and use an eligible backup route. Recovery depends on monitoring and hold-time configuration.
 
 ```text
 show routing path-monitor
 ```
 
-Recovery behavior depends on monitoring and preemptive hold-time settings.
+### 4 — Policy-Based Forwarding
+Create policies matching traffic sources such as LAN and DMZ, set intended egress interface and next-hop, and test policy matches, connectivity, and monitor/backup behavior. PBF can override normal destination-based routing for matching sessions, subject to configuration.
 
-## 4. Policy-Based Forwarding (PBF)
+### 5 — High Availability architecture (design study)
+Review active/passive and active/active designs, HA1 control and HA2 data links, heartbeats, state/config synchronization, and link/path monitoring. **No measured HA failover times or full end-to-end HA tests are provided.**
 
-The lab explores steering different traffic sources over selected ISP paths.
+## Verification and evidence
 
-- Define PBF rules for LAN and DMZ traffic.
-- Specify the egress interface and next-hop gateway.
-- Add PBF monitoring and backup behavior.
-- Verify client connectivity, policy hit counts, and firewall traffic logs.
+| Check | What is documented | Interpretation |
+| --- | --- | --- |
+| Default routes | Routing-table screenshots | Shows route configuration/state at capture time |
+| Connectivity | Client pings to `8.8.8.8` and `4.2.2.2` | Demonstrates reachability at capture time |
+| ECMP | Configuration and traffic logs | Illustrates session/path selection |
+| Route monitoring | Path-monitor configuration and status | Illustrates monitored failover design |
+| PBF | Policies, counters, traffic logs | Shows traffic-steering checks |
+| HA failover | No measured results | **Not verified** |
 
-PBF is a policy-based traffic-steering mechanism; it is not the same as ECMP load balancing.
+See the [verification guide](verification/README.md) and [screenshots directory](screenshots/). Screenshot filenames preserve source-page numbers; some may contain handwritten annotations from the original documentation. Images should be reviewed and sanitized before being reused outside this portfolio.
 
-## 5. Palo Alto High Availability (HA)
+## Authentication and security scope
 
-The documentation also discusses firewall HA design:
+This project focuses on **network traffic policy and forwarding**, not an application login system. The repository does **not** demonstrate a user sign-in workflow, credential store, API-token issuance, or token rotation. Firewall administration and API authentication are not documented here, so their configuration must not be inferred.
 
-- Active/passive and active/active modes
-- HA1 control and HA2 data links
-- Heartbeats, session/configuration synchronization
-- Link and path monitoring
-- Failover design considerations
+**Publication hygiene:** Never commit real passwords, API keys, private certificates/keys, management secrets, unredacted sensitive addressing, or proprietary PAN-OS software images. Review screenshots and config exports before publication; rotate any credential accidentally exposed.
 
-**Note:** HA design/reference material is included separately from the dual-ISP test evidence. Validate HA functionality with device state and failover logs before claiming end-to-end HA testing.
+## Repository map
 
-## Verification checklist
+```text
+.
+├── README.md                  # Project overview and technical narrative
+├── topology/README.md         # Logical topology and WAN design
+├── verification/README.md     # Evidence mapping and limitations
+└── screenshots/               # Page-numbered source-document images
+```
 
-- [x] Document dual-ISP interface and NAT setup
-- [x] Document equal-cost routing / ECMP configuration
-- [x] Capture client connectivity tests and firewall traffic logs
-- [x] Document primary/backup path-monitoring setup
-- [x] Document PBF policy and monitoring examples
-- [ ] Add sanitized, independently labeled screenshots to this repository
-- [ ] Add measured HA failover results and logs
-- [ ] Add exact PAN-OS version and sanitized device configuration exports
+## Known limitations / next improvements
 
-## Repository safety
+- [ ] Record exact PAN-OS, EVE-NG and VMware versions
+- [ ] Replace page-numbered image names with descriptive filenames and captions
+- [ ] Sanitize and peer-review all screenshots before broader distribution
+- [ ] Add redacted interface, NAT, routing and PBF configuration exports
+- [ ] Record repeatable test cases with dates, expected results and observed outputs
+- [ ] Validate HA with device-state logs and measured failover/recovery times
+- [ ] Add failure-mode testing for ISP outage, monitor failure and path recovery
 
-Do not commit real passwords, API keys, management credentials, unredacted public IP information, or licensed PAN-OS images. All lab addresses and examples should be reviewed before reuse in production.
+## Skills demonstrated
 
-## Project purpose
+**Palo Alto Networks · PAN-OS · Network Security · NAT · Dual WAN · Static Routing · ECMP · Policy-Based Forwarding · Path Monitoring · Troubleshooting · EVE-NG · VMware Workstation**
 
-Demonstrate practical enterprise network-security skills in Palo Alto firewall routing, dual-WAN traffic management, monitoring, redundancy, and troubleshooting.
+---
+
+*Portfolio documentation of a simulated lab. This repository is not a production deployment guide, and all results are limited to the evidence captured in the source material.*
