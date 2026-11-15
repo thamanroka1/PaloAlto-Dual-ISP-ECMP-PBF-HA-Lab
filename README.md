@@ -17,6 +17,19 @@ A hands-on firewall project exploring resilient internet connectivity, session-a
 | PBF | Source-based egress selection for LAN/DMZ traffic | Policy examples and hit/traffic logs |
 | HA | Active/passive vs. active/active, HA1/HA2 and monitoring | Reference/design material only |
 
+## Original EVE-NG topology screenshots
+
+The two original screenshots supplied for this project show a **larger multi-site security lab** that includes the Sydney HQ, two Palo Alto firewalls labelled HA-Active and HA-Passive, a DMZ, VLAN-based LAN segments, customer branches, a remote VPN user, a London data center, a New York site, and an MPLS VPN area. These images provide historical topology context; they are not proof that every displayed security, routing or HA feature passed verification.
+
+| Screenshot | View | Description |
+| --- | --- | --- |
+| `topology/original-topology-detail.jpeg` | Detail | Sydney HQ, HA-labelled firewall pair, DMZ, VLANs, routing segments and remote access connectivity |
+| `topology/original-topology-overview.jpeg` | Overview | Wider EVE-NG view of Sydney HQ, London Data Center, New York Site and MPLS VPN |
+
+The images are available in the original project capture. **Their binary image files must be uploaded separately to the paths above before image previews will render.** The original dual-ISP study remains documented independently below.
+
+See [topology notes](topology/README.md).
+
 ## Lab environment
 
 - **Firewall:** Palo Alto Networks PAN-OS (exact version not recorded)
