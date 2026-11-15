@@ -21,12 +21,17 @@ A hands-on firewall project exploring resilient internet connectivity, session-a
 
 The two original screenshots supplied for this project show a **larger multi-site security lab** that includes the Sydney HQ, two Palo Alto firewalls labelled HA-Active and HA-Passive, a DMZ, VLAN-based LAN segments, customer branches, a remote VPN user, a London data center, a New York site, and an MPLS VPN area. These images provide historical topology context; they are not proof that every displayed security, routing or HA feature passed verification.
 
-| Screenshot | View | Description |
-| --- | --- | --- |
-| `topology/original-topology-detail.jpeg` | Detail | Sydney HQ, HA-labelled firewall pair, DMZ, VLANs, routing segments and remote access connectivity |
-| `topology/original-topology-overview.jpeg` | Overview | Wider EVE-NG view of Sydney HQ, London Data Center, New York Site and MPLS VPN |
+### Full EVE-NG network overview
 
-The images are available in the original project capture. **Their binary image files must be uploaded separately to the paths above before image previews will render.** The original dual-ISP study remains documented independently below.
+![Original EVE-NG multi-site topology overview](paloalto.png.jpeg)
+
+*Original lab screenshot showing Sydney HQ, London Data Center, New York Site, branch networks and MPLS VPN.*
+
+### Sydney HQ and Palo Alto HA detail
+
+![Original EVE-NG Palo Alto HA topology detail](paloalto2PM.jpeg)
+
+*Original detailed screenshot showing the HA-labelled Palo Alto pair, DMZ, VLANs and interconnected routing segments.*
 
 See [topology notes](topology/README.md).
 
@@ -104,6 +109,8 @@ This project focuses on **network traffic policy and forwarding**, not an applic
 ```text
 .
 ├── README.md                  # Project overview and technical narrative
+├── paloalto.png.jpeg           # Original full EVE-NG topology
+├── paloalto2PM.jpeg            # Original detailed EVE-NG topology
 ├── topology/README.md         # Logical topology and WAN design
 ├── verification/README.md     # Evidence mapping and limitations
 └── screenshots/               # Page-numbered source-document images
