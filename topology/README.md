@@ -23,16 +23,18 @@ Remove any real credentials and sensitive management information before uploadin
 
 ## Original multi-site EVE-NG topology captures
 
-The two provided historical screenshots depict a broader design than the simplified dual-ISP logical drawing above.
+These are the original screenshots uploaded to the repository root.
 
-### Screenshot 1 — Detailed topology
-**Expected file:** `original-topology-detail.jpeg`
+### Full network overview
 
-Visible elements include Sydney HQ, an Active/Passive-labelled Palo Alto pair, DMZ and Active Directory/Linux hosts, VLAN endpoints, customer-premises routing, remote VPN access, and simulated Internet links. These labels identify the intended design; the screenshot alone does not validate firewall HA or forwarding behavior.
+![Original full EVE-NG topology](../paloalto.png.jpeg)
 
-### Screenshot 2 — Full topology overview
-**Expected file:** `original-topology-overview.jpeg`
+The overview includes Sydney HQ, London Data Center, New York Site, MPLS VPN and customer branches.
 
-The wider topology additionally shows a London Data Center, New York Site, MPLS VPN (PE/P/PE), and customer branch devices. OSPF and RIP labels appear in separate portions of the diagram. These views are historical documentation of the lab scope rather than standalone configuration evidence.
+### Sydney HQ / Palo Alto HA detail
 
-> Image upload pending: the two original JPEG binaries need to be placed under `topology/` with the filenames above. Do not infer production deployment or verified HA results solely from the screenshots.
+![Original detailed Palo Alto topology](../paloalto2PM.jpeg)
+
+This view focuses on the HA-Active and HA-Passive-labelled firewalls, DMZ, VLAN endpoints, and connected routers.
+
+These screenshots show the lab design, but do not by themselves verify successful HA failover or other feature testing.
